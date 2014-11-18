@@ -35,6 +35,18 @@ class PoissonLog extends Family {
   override def wwdenom(mu: Double): Double = (1.0/(mu*mu*mu))
 }
 
+class FakeDesignMatrix(N: Int, p: Int) extends Iterator[DenseVector[Double]] {
+  var n : Int = 0
+
+  def hasNext() : Boolean = n < N
+  def next() : DenseVector[Double] = {
+    var x = DenseVector.rand[Double](p)
+    x(0) = 1
+    n = n + 1
+    return x
+  }
+}
+
 /*** u = exp(neta)
  *** neta = log(u)
  *** dneta/du = 1/u
