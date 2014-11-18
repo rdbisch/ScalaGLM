@@ -3,6 +3,8 @@ import breeze.stats.distributions._
 import breeze.numerics._
 import breeze.stats.mean
 
+import scala.util.Random
+
 trait LinkFunction {
   /* e.g. log */
   def link(mu: Double): Double
@@ -35,15 +37,49 @@ class PoissonLog extends Family {
   override def wwdenom(mu: Double): Double = (1.0/(mu*mu*mu))
 }
 
-class FakeDesignMatrix(N: Int, p: Int) extends Iterator[DenseVector[Double]] {
-  var n : Int = 0
+class FakeDesignMatrix(N: Int, p: Int, seed: Long) extends Iterable[DenseVector[Double]] {
+  def iterator = new Iterator[DenseVector[Double]] {
+    val rng = new Random(seed)
+    var n : Int = 0
+    def hasNext() : Boolean = n < N
+    def next() : DenseVector[Double] = {
+      var x = DenseVector.zeros[Double](p)
+      x(0) = 1
+      for (i <- 1 until p) x(i) = rng.nextGaussian()
+      n = n + 1
+      return x
+    }
+  }
+}
 
-  def hasNext() : Boolean = n < N
-  def next() : DenseVector[Double] = {
-    var x = DenseVector.rand[Double](p)
-    x(0) = 1
-    n = n + 1
-    return x
+object TestFakeDesignMatrix {
+  def run(args: Array[String]) {
+    val fdm = new FakeDesignMatrix(10000,10,12345)
+    var totals = DenseVector.zeros[Double](10)
+    
+    for (row <- fdm) {
+      for (i <- 0 until 10)
+        totals(i) += row(i)
+    }
+    println(totals)
+
+    val fdm2 = new FakeDesignMatrix(10000,10,12345)
+    var totals2 = DenseVector.zeros[Double](10)
+    
+    for (row <- fdm2) {
+      for (i <- 0 until 10)
+        totals2(i) += row(i)
+    }
+    println(totals2)
+
+    val fdm3 = new FakeDesignMatrix(10000,10,12346)
+    var totals3 = DenseVector.zeros[Double](10)
+    
+    for (row <- fdm3) {
+      for (i <- 0 until 10)
+        totals3(i) += row(i)
+    }
+    println(totals3)
   }
 }
 
@@ -103,12 +139,16 @@ class GLM(family: Family) {
 
 object MyTest {
   def main(args: Array[String]) = {
-    val test = new PoissonLog()
+        
+    val test = TestFakeDesignMatrix
+    test.run(args)
+    /*val test = new PoissonLog()
     println("link is " + test.link(2))
     println("ilink is " + test.ilink(2))
     println("dlink is " + test.dlink(2))
     println("var is " + test.variance(2))
     println("wwdenom is " + test.wwdenom(2))
     new GLM(new PoissonLog()).main(args)
+    */
   }
 }
