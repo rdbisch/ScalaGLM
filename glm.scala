@@ -14,8 +14,18 @@ trait LinkFunction {
   def dlink(mu: Double): Double
 }
 
+class IdentityLink extends LinkFunction {
+  def link(mu: Double): Double = mu
+  def ilink(mu: Double): Double = mu
+  def dlink(mu: Double): Double = 1
+}
+
 trait Distribution {
   def variance(mu: Double): Double
+}
+
+class NormalDistribution extends Distribution {
+  def variance(mu: Double): Double = 1
 }
 
 trait Family extends LinkFunction with Distribution {
@@ -89,28 +99,56 @@ object TestFakeDesignMatrix {
 ****/
 
 class GLM(family: Family) {
+  var xtwx = DenseMatrix.zeros[Double](4,4)
+  var xtwy = DenseVector.zeros[Double](4)
+
+  def update(x: DenseVector[Double], w: Double, y: Double) = {
+    for (i <- 0 until x.size) {
+      val temp = x(i) * w
+      for (j <- i until x.size) {
+        xtwx(i, j) += temp * x(j)
+      }
+      xtwy(i) += temp * y
+    }
+  }
+  
+  def reflect() {
+    for (i <- 0 until xtwx.rows) {
+      for (j <- 0 until i) {
+        xtwx(i, j) = xtwx(j, i)
+      }
+    }
+  }
+
   def main(args: Array[String]) = {
     val N = args(0).toInt
     val p = args(1).toInt
 
+    xtwx = DenseMatrix.zeros[Double](p, p)
+    xtwy = DenseVector.zeros[Double](p)
+
     /* Randomly Generate the Design */
-    val X = DenseMatrix.rand[Double](N,p)
-    X(::,0) := DenseVector.ones[Double](N)
+    val X = new FakeDesignMatrix(N, p, 295234)
 
     /* Assume Constnat Weights for now */
     val W = DenseVector.ones[Double](N)
 
     /* Generate the true betas */
     val gauss = new Gaussian(0, 1)
-    val betas = new DenseVector(gauss.sample(p).toArray)
+    //val betas = new DenseVector(gauss.sample(p).toArray)
+    val betas = DenseVector.zeros[Double](p)
+    for (i <- 0 until p) betas(i) = 0.05 * (p - i)
     println("True Betas")
     println(betas)
 
     /* Generate true mean */
-    val mu = exp(X * betas)
+    var mu = DenseVector.zeros[Double](N)
+    for ((row, i) <- X.zipWithIndex) {
+      mu(i) = family.ilink(row dot betas)
+    }
 
-    /* Randomly simulate mean */
-    val y = mu.map { Poisson(_).draw.toDouble }
+    /* Randomly simulate response per true mean */
+    val y = mu.map { Poisson(_).draw }
 
     /* Working mu */
     var betaHat = DenseVector.zeros[Double](p)
@@ -120,35 +158,38 @@ class GLM(family: Family) {
     var n = 100.0
     while ( iter < 10000 && n >= 1e-6) {
       println(betaHat)
-      val nuhat = X*betaHat
-      val yhat = nuhat.map { family.ilink }
-      val ww = diag(W :* yhat.map { family.wwdenom })
-      val yy = nuhat + (y - yhat) :* yhat.map(family.dlink)
-      val common = X.t * ww
-      val xtwx = common * X 
-      val xtwy = common * yy
+      xtwx = DenseMatrix.zeros[Double](p, p)
+      xtwy = DenseVector.zeros[Double](p)
+      for ((row, i) <- X.zipWithIndex) {
+        val nuhat = row dot betaHat
+        val yhat = family.ilink(nuhat)
+        val ww = W(i) * family.wwdenom(yhat)
+        val yy = nuhat + (y(i) - yhat) * family.dlink(yhat)
+        update(row, ww, yy) 
+      }
+      reflect()
       val betaHatNext = xtwx \ xtwy
       val diff = betaHatNext - betaHat
       n = sum(diff.map( (x) => x*x ))
-      println(n)
       betaHat = xtwx \ xtwy
       iter += 1
     }
+    println(betaHat)
   }
 }
 
 object MyTest {
   def main(args: Array[String]) = {
         
-    val test = TestFakeDesignMatrix
-    test.run(args)
-    /*val test = new PoissonLog()
+//    val test = TestFakeDesignMatrix
+//    test.run(args)
+    val test = new PoissonLog()
     println("link is " + test.link(2))
     println("ilink is " + test.ilink(2))
     println("dlink is " + test.dlink(2))
     println("var is " + test.variance(2))
     println("wwdenom is " + test.wwdenom(2))
     new GLM(new PoissonLog()).main(args)
-    */
+    //new GLM(new GenericFamily(new IdentityLink(), new NormalDistribution())).main(args) 
   }
 }
