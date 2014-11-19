@@ -20,6 +20,12 @@ class IdentityLink extends LinkFunction {
   def dlink(mu: Double): Double = 1
 }
 
+class LogLink extends LinkFunction {
+  def link(mu: Double): Double = log(mu)
+  def ilink(mu: Double): Double = exp(mu)
+  def dlink(mu: Double): Double = 1.0 / mu
+}
+
 trait Distribution {
   def variance(mu: Double): Double
 }
@@ -44,7 +50,7 @@ class PoissonLog extends Family {
   def ilink(mu: Double): Double = exp(mu)
   def dlink(mu: Double): Double = 1.0/mu
   def variance(mu: Double): Double = mu
-  override def wwdenom(mu: Double): Double = (1.0/(mu*mu*mu))
+  override def wwdenom(mu: Double): Double = mu //(1.0/(mu*mu*mu))
 }
 
 class FakeDesignMatrix(N: Int, p: Int, seed: Long) extends Iterable[DenseVector[Double]] {
