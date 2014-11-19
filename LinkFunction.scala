@@ -1,16 +1,17 @@
-import breeze.linalg._
-import breeze.stats.distributions._
-import breeze.numerics._
-import breeze.stats.mean
-
-import scala.util.Random
-
+package org.rbisd.glm;
+/** Reperesents the link function of glm theory
+  * 
+  * Function can be anything as long as it is monotonic
+  *  and invertible across the entire domain 
+  *
+  * In literature,
+  * link is usually denoted g
+  * ilink is the inverse of g, 
+  * dlink is the derivative of g.
+  */
 trait LinkFunction {
-  /* e.g. log */
   def link(mu: Double): Double
-  /* e.g. exp */
   def ilink(mu: Double): Double
-  /* e.g. 1/mu */
   def dlink(mu: Double): Double
 }
 
@@ -21,8 +22,8 @@ class IdentityLink extends LinkFunction {
 }
 
 class LogLink extends LinkFunction {
-  def link(mu: Double): Double = log(mu)
-  def ilink(mu: Double): Double = exp(mu)
+  def link(mu: Double): Double = scala.math.log(mu)
+  def ilink(mu: Double): Double = scala.math.exp(mu)
   def dlink(mu: Double): Double = 1.0 / mu
 }
 

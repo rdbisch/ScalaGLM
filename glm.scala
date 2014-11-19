@@ -1,3 +1,4 @@
+package org.rbisd.glm;
 import breeze.linalg._
 import breeze.stats.distributions._
 import breeze.numerics._

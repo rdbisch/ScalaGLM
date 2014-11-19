@@ -1,4 +1,5 @@
-
+package org.rbisd.glm;
+/** Represents the distribution to be used in the GLM family */
 trait Distribution {
   def variance(mu: Double): Double
 }

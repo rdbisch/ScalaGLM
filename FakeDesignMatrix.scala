@@ -1,3 +1,4 @@
+package org.rbisd.glm;
 import breeze.linalg._
 import scala.util.Random
 
@@ -35,6 +36,7 @@ object TestFakeDesignMatrix {
         totals2(i) += row(i)
     }
     println(totals2)
+    // totals and totals2 should be exactly equal
 
     val fdm3 = new FakeDesignMatrix(10000,10,12346)
     var totals3 = DenseVector.zeros[Double](10)
@@ -44,6 +46,7 @@ object TestFakeDesignMatrix {
         totals3(i) += row(i)
     }
     println(totals3)
+    // totals3 should not
   }
 }
 
