@@ -13,13 +13,13 @@ import scala.collection.JavaConversions._
 
 class Dataset {
   def test() = {
-    var schema = new Schema.Parser().parse(new File("twitter.avsc"));
+    var schema = new Schema.Parser().parse(new File("allstate_kaggle.avsc"));
     for (field <- schema.getFields()) {
       println(field.toString)
     }
 
     var datumReader = new GenericDatumReader[GenericRecord](schema);
-    var dataFileReader = new DataFileReader[GenericRecord](new File("twitter.avro"), datumReader)
+    var dataFileReader = new DataFileReader[GenericRecord](new File("train_set.avro"), datumReader)
     var row : GenericRecord = null;
     while (dataFileReader.hasNext) {
       row = dataFileReader.next(row);
@@ -101,7 +101,7 @@ class GLM(family: Family) {
       val betaHatNext = xtwx \ xtwy
       val diff = betaHatNext - betaHat
       n = sum(diff.map( (x) => x*x ))
-      betaHat = xtwx \ xtwy
+      betaHat = betaHatNext
       iter += 1
     }
     println(betaHat)
