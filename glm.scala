@@ -3,8 +3,30 @@ import breeze.linalg._
 import breeze.stats.distributions._
 import breeze.numerics._
 import breeze.stats.mean
-
 import scala.util.Random
+
+import org.apache.avro._
+import org.apache.avro.file._
+import org.apache.avro.generic._
+import java.io.File
+import scala.collection.JavaConversions._
+
+class Dataset {
+  def test() = {
+    var schema = new Schema.Parser().parse(new File("twitter.avsc"));
+    for (field <- schema.getFields()) {
+      println(field.toString)
+    }
+
+    var datumReader = new GenericDatumReader[GenericRecord](schema);
+    var dataFileReader = new DataFileReader[GenericRecord](new File("twitter.avro"), datumReader)
+    var row : GenericRecord = null;
+    while (dataFileReader.hasNext) {
+      row = dataFileReader.next(row);
+      println(row)
+    }
+  }
+}
 
 class GLM(family: Family) {
   var xtwx = DenseMatrix.zeros[Double](4,4)
@@ -88,9 +110,10 @@ class GLM(family: Family) {
 
 object MyTest {
   def main(args: Array[String]) = {
-        
-//    val test = TestFakeDesignMatrix
-//    test.run(args)
+
+    val test2 = new Dataset()
+    test2.test()
+
     val test = new PoissonLog()
     println("link is " + test.link(2))
     println("ilink is " + test.ilink(2))

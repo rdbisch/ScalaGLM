@@ -7,7 +7,8 @@ lazy val root = (project in file(".")).
 
 libraryDependencies ++= Seq(
     "org.scalanlp" %% "breeze" % "0.8.1",
-    "org.scalanlp" %% "breeze-natives" % "0.8.1"
+    "org.scalanlp" %% "breeze-natives" % "0.8.1",
+    "org.apache.avro" % "avro" % "1.7.7"
 )
 
 resolvers ++= Seq(
