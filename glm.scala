@@ -10,6 +10,7 @@ import org.apache.avro.file._
 import org.apache.avro.generic._
 import java.io.File
 import scala.collection.JavaConversions._
+import scala.collection.mutable.HashMap
 
 class Dataset {
   def test() = {
@@ -21,10 +22,23 @@ class Dataset {
     var datumReader = new GenericDatumReader[GenericRecord](schema);
     var dataFileReader = new DataFileReader[GenericRecord](new File("train_set.avro"), datumReader)
     var row : GenericRecord = null;
+    var results = HashMap.empty[Object,(Long, Double)]
     while (dataFileReader.hasNext) {
       row = dataFileReader.next(row);
-      println(row)
+
+      val my = row.get("Model_Year")
+      val t = ( 1L, row.get("Claim_Amount").asInstanceOf[Double] ) 
+
+      if (!results.contains(my))
+        results += my -> t
+      else {
+        val u = results(my)
+        val v = ( t._1+u._1, t._2 + u._2 ) 
+        results += my -> v
+      }
     }
+
+    println(results)
   }
 }
 

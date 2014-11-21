@@ -11,7 +11,7 @@ import sys
 
 mapping = {
         u"string": lambda x: x,
-        u"int": lambda x: int(x),
+        u"int": lambda x: 0 if x == "?" else int(x),
         u"long": lambda x: long(x),
         u"double": lambda x: float(x)
 }
