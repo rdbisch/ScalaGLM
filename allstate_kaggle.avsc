@@ -1,7 +1,7 @@
 {
   "type" : "record",
   "name" : "allstate_kaggle",
-  "namespace" : "org.rbisd.avro",
+  "namespace" : "org.rbisd.glm",
   "doc" : "Kaggle Allstate",
   "fields" : [
     { "name": "Row_ID",         "type": "long" },

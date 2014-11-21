@@ -40,6 +40,29 @@ class Dataset {
 
     println(results)
   }
+
+  def test2() = {
+    var datumReader = new SpecificDatumReader[allstate_kaggle](allstate_kaggle.class);
+    var dataFileReader = new DataFileReader[allstate_kaggle](new File("train_set.avro"), datumReader)
+    var row : allstate_kaggle = null;
+    var results = HashMap.empty[Object,(Long, Double)]
+    while (dataFileReader.hasNext) {
+      row = dataFileReader.next(row);
+
+      val my = row.getModelYear
+      val t = ( 1L, row.getClaimAmount.toDouble ) 
+
+      if (!results.contains(my))
+        results += my -> t
+      else {
+        val u = results(my)
+        val v = ( t._1+u._1, t._2 + u._2 ) 
+        results += my -> v
+      }
+    }
+
+    println(results)
+  }
 }
 
 class GLM(family: Family) {
@@ -126,7 +149,8 @@ object MyTest {
   def main(args: Array[String]) = {
 
     val test2 = new Dataset()
-    test2.test()
+    //test2.test()
+    test2.test2()
 
     val test = new PoissonLog()
     println("link is " + test.link(2))
